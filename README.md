@@ -1,4 +1,7 @@
 # gedcom2sql
 
-- [gedcom](https://github.com/iand/gedcom)
-- [sqlite3](https://godoc.org/github.com/mxk/go-sqlite/sqlite3), [sql](https://godoc.org/database/sql)
+This module allows to convert of data in GEDCOM format to SQL. Gedcom is a
+format for storing genealogical information designed by The Church of Jesus
+Christ of Latter-Day Saints (http://www.lds.org).
+
+Copyright (c) 2017, Sergey Bronnikov sergeyb@bronevichok.ru
