@@ -1,0 +1,17 @@
+language: go
+
+os:
+  - linux
+  - osx
+
+go:
+  - tip
+  - 1.7
+
+script:
+- test -z "$(gofmt -s -l . | tee /dev/stderr)"
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
