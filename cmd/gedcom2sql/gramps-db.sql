@@ -12,6 +12,7 @@ CREATE TABLE reference (obj_handle VARCHAR(50), obj_class TEXT, ref_handle VARCH
 CREATE TABLE name_group (name VARCHAR(50) PRIMARY KEY NOT NULL, grouping TEXT)
 CREATE TABLE metadata (setting VARCHAR(50) PRIMARY KEY NOT NULL, value BLOB)
 CREATE TABLE gender_stats (given_name TEXT, female INTEGER, male INTEGER, unknown INTEGER)
+
 CREATE INDEX person_gramps_id ON person(gramps_id)
 CREATE INDEX person_surname ON person(surname)
 CREATE INDEX person_given_name ON person(given_name)
