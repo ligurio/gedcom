@@ -36,9 +36,13 @@ sqlite> -- "Total number of birth dates:"
 sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 ```
 
-## `lint.go`
+## `gedcom-analysis.go`
 
 Проверка файла GEDCOM на ошибки.
+
+```
+gedcom-analysis -verbose -file samples/tsars.ged
+```
 
 ### `vk2gedcom.go`
 
