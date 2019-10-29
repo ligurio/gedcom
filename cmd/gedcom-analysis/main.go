@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
-	_"errors"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/iand/gedcom"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -27,16 +28,525 @@ const (
 	CBSPAN = 1
 )
 
-type fn func(person *gedcom.IndividualRecord)
+type fn_person func(person *gedcom.IndividualRecord) bool
+type fn_family func(family *gedcom.FamilyRecord) bool
 
-var (
-	// rules are borrowed from gigatrees.com and lifelines
+func rule_I100(person *gedcom.IndividualRecord) bool {
+	var birt_date, deat_date time.Time
+	birt_date = eventDate(person, "BIRT")
+	if birt_date.IsZero() {
+		return true
+	}
+	deat_date = eventDate(person, "DEAT")
+	if deat_date.Sub(birt_date) > OLDAGE {
+		fmt.Println(deat_date, birt_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I101(person *gedcom.IndividualRecord) bool {
+	var birt_date, bap_date time.Time
+	birt_date = eventDate(person, "BIRT")
+	if birt_date.IsZero() {
+		return true
+	}
+	bap_date = eventDate(person, "BAP")
+	if bap_date.Sub(birt_date) > 0 {
+		fmt.Println(birt_date, bap_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I102(person *gedcom.IndividualRecord) bool {
+	var birt_date, deat_date time.Time
+	birt_date = eventDate(person, "BIRT")
+	if birt_date.IsZero() {
+		return true
+	}
+	deat_date = eventDate(person, "DEAT")
+	if deat_date.Sub(birt_date) < 0 {
+		fmt.Println(birt_date, deat_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I103(person *gedcom.IndividualRecord) bool {
+	var deat_date, buri_date time.Time
+	deat_date = eventDate(person, "DEAT")
+	if deat_date.IsZero() {
+		return true
+	}
+	buri_date = eventDate(person, "BURI")
+	if deat_date.Sub(buri_date) < 0 {
+		fmt.Println(deat_date, buri_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I104(person *gedcom.IndividualRecord) bool {
+	var deat_date, bap_date time.Time
+	deat_date = eventDate(person, "DEAT")
+	if deat_date.IsZero() {
+		return true
+	}
+	bap_date = eventDate(person, "BAP")
+	if deat_date.Sub(bap_date) < 0 {
+		fmt.Println(deat_date, bap_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I105(person *gedcom.IndividualRecord) bool {
+	var bap_date, buri_date time.Time
+	bap_date = eventDate(person, "BAP")
+	if bap_date.IsZero() {
+		return true
+	}
+	buri_date = eventDate(person, "BURI")
+	if bap_date.Sub(buri_date) < 0 {
+		fmt.Println(buri_date, bap_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I106(person *gedcom.IndividualRecord) bool {
+	var buri_date, deat_date time.Time
+	deat_date = eventDate(person, "DEAT")
+	if deat_date.IsZero() {
+		return true
+	}
+	buri_date = eventDate(person, "BURI")
+	if deat_date.Sub(buri_date) > 0 {
+		fmt.Println(buri_date, deat_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I107(person *gedcom.IndividualRecord) bool {
+	var bap_date, birt_date time.Time
+	bap_date = eventDate(person, "BAP")
+	if bap_date.IsZero() {
+		return true
+	}
+	birt_date = eventDate(person, "BIRT")
+	if bap_date.Sub(birt_date) >= 1 {
+		fmt.Println(bap_date, birt_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I108(person *gedcom.IndividualRecord) bool {
+	var deat_date, buri_date time.Time
+	deat_date = eventDate(person, "DEAT")
+	if deat_date.IsZero() {
+		return true
+	}
+	buri_date = eventDate(person, "BURI")
+	if deat_date.Sub(buri_date) >= 1 {
+		fmt.Println(deat_date, buri_date)
+		return false
+	}
+
+	return true
+}
+
+func rule_I109(person *gedcom.IndividualRecord) bool {
+	if person.Sex == "" {
+		return false
+	}
+
+	return true
+}
+
+func rule_I110(person *gedcom.IndividualRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_I111(person *gedcom.IndividualRecord) bool {
+	if len(person.Parents) > 1 {
+		return false
+	}
+
+	return true
+}
+
+func rule_I112(person *gedcom.IndividualRecord) bool {
+	if len(person.Family) == 0 {
+		return false
+	}
+
+	return true
+}
+
+func rule_F100(family *gedcom.FamilyRecord) bool {
+	if family.Husband == nil {
+		return false
+	}
+	if family.Wife == nil {
+		return false
+	}
+	if len(family.Child) == 0 {
+		return false
+	}
+
+	return true
+}
+
+func rule_F101(family *gedcom.FamilyRecord) bool {
+	if family.Husband == nil {
+		return false
+	}
+	if family.Wife == nil {
+		return false
+	}
+
+	return true
+}
+
+func rule_F102(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_F103(family *gedcom.FamilyRecord) bool {
+	if family.Husband == nil {
+		return false
+	}
+
+	return true
+}
+
+func rule_F104(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_F105(family *gedcom.FamilyRecord) bool {
+	if family.Wife == nil {
+		return false
+	}
+
+	return true
+}
+
+func rule_F106(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_F107(family *gedcom.FamilyRecord) bool {
+	if len(family.Child) == 0 {
+		return false
+	}
+
+	return true
+}
+
+func rule_F108(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_F109(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_F110(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M100(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M101(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M102(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M103(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M104(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M105(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M106(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M107(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M108(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M109(family *gedcom.FamilyRecord) bool {
+	if family.Husband.Sex == family.Wife.Sex {
+		return false
+	}
+
+	return true
+}
+
+func rule_M110(family *gedcom.FamilyRecord) bool {
+	if family.Husband.Sex == "F" {
+		return false
+	}
+
+	return true
+}
+
+func rule_M111(family *gedcom.FamilyRecord) bool {
+	if family.Wife.Sex == "M" {
+		return false
+	}
+
+	return true
+}
+
+func rule_M112(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M113(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M114(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_M115(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_P100(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_P101(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_P102(family *gedcom.FamilyRecord) bool {
+	var mother_birt_date, child_birt_date time.Time
+	mother_birt_date = eventDate(family.Wife, "BIRT")
+	for _, child := range family.Child {
+		child_birt_date = eventDate(child, "BIRT")
+		if mother_birt_date.Sub(child_birt_date) < 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
+func rule_P103(family *gedcom.FamilyRecord) bool {
+	var mother_birt_date, child_birt_date time.Time
+	mother_birt_date = eventDate(family.Wife, "BIRT")
+	if mother_birt_date.IsZero() {
+		return true
+	}
+	for _, child := range family.Child {
+		child_birt_date = eventDate(child, "BIRT")
+		if mother_birt_date.Sub(child_birt_date) < YNGMOM {
+			fmt.Println(mother_birt_date, child_birt_date)
+			return false
+		}
+	}
+
+	return true
+}
+
+func rule_P104(family *gedcom.FamilyRecord) bool {
+	var mother_deat_date, child_birt_date time.Time
+	mother_deat_date = eventDate(family.Wife, "DEAT")
+	if mother_deat_date.IsZero() {
+		return true
+	}
+	for _, child := range family.Child {
+		child_birt_date = eventDate(child, "BIRT")
+		if mother_deat_date == child_birt_date {
+			fmt.Println(mother_deat_date, child_birt_date)
+			return false
+		}
+	}
+
+	return true
+}
+
+func rule_P105(family *gedcom.FamilyRecord) bool {
+	var father_deat_date, child_birt_date time.Time
+	father_deat_date = eventDate(family.Husband, "DEAT")
+	if father_deat_date.IsZero() {
+		return true
+	}
+	for _, child := range family.Child {
+		child_birt_date = eventDate(child, "BIRT")
+		if father_deat_date == child_birt_date {
+			fmt.Println(father_deat_date, child_birt_date)
+			return false
+		}
+	}
+
+	return true
+}
+
+func rule_P106(family *gedcom.FamilyRecord) bool {
+	var father_surname []string
+	var child_surname []string
+	surname_re := regexp.MustCompile(`.+ /(.+)/`)
+	for _, name := range family.Husband.Name {
+		surname := surname_re.FindStringSubmatch(name.Name)
+		if surname[1] != "" {
+			father_surname = append(father_surname, surname[1])
+		}
+	}
+	for _, child := range family.Child {
+		for _, name := range child.Name {
+			surname := surname_re.FindStringSubmatch(name.Name)
+			if surname[1] != "" {
+				child_surname = append(child_surname, surname[1])
+			}
+		}
+	}
+
+	for _, surname := range child_surname {
+		if !contains(father_surname, surname) {
+			fmt.Println(father_surname, surname)
+			return false
+		}
+	}
+
+	return true
+}
+
+func rule_C100(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_C101(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_C102(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_C103(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_C104(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func rule_C105(family *gedcom.FamilyRecord) bool {
+	/* FIXME */
+	return true
+}
+
+func eventDate(person *gedcom.IndividualRecord, eventTag string) time.Time {
+	var date time.Time
+	for _, event := range person.Event {
+		if event.Tag == eventTag {
+			date, _ = parse_date_string(event.Date)
+		}
+	}
+
+	return date
+}
+
+func parse_date_string(date string) (time.Time, error) {
+	// "2006-01-02T15:04:05.000Z"
+	layout := "02 JAN 2006"
+	t, err := time.Parse(layout, date)
+	if err == nil {
+		return t, nil
+	}
+
+	return time.Time{}, err
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func PrintIndividualRecord(record *gedcom.IndividualRecord) {
+	fmt.Printf("Person: %s", record.Xref)
+	if len(record.Name) > 0 {
+		fmt.Printf(" %s\n", record.Name[0].Name)
+	} else {
+		fmt.Printf("\n")
+	}
+}
+
+func PrintFamilyRecord(record *gedcom.FamilyRecord) {
+	fmt.Printf("Family %s\n", record.Xref)
+}
+
+func main() {
 	/*
-		Persons Born After They Were Baptized
-		Persons Born After They Were Married
-		Persons Born After Their Children
-		Persons Born After They Died
-		Persons Born After Being Buried
+		persons born after they were married
+		persons born after their children
+		persons having similarly named children
+		persons having an ancestral loop
+
 		Persons Born After One of Their Parents Died
 		Persons Born After One of Their Parents Was Buried
 		Persons Baptized After Being Buried
@@ -47,336 +557,20 @@ var (
 		Persons Died Before Children Were Born
 		Persons Died After Being Buried
 		Persons Buried Before Having Children
-		Persons With Multiple Parents
-		Persons Having an Ancestral Loop
 		Persons Baptized Past the Age of 5
 		Persons Married Before the Age of 14
 		Wives Married After the Age of 50
 		Persons Living Past the Age of 100
 		Persons at Least 30 Years Older Than Their Spouse
-		Persons Having Children Before the Age of 15
-		Mothers Having Children Past the Age of 50
-		Persons Having Similarly Named Children
 		Persons Having a Degree of Kinship of 4 or Less
 		Persons Having a Non-biological Parent
-		Persons Having Unknown Genders
-		Families Having Swapped Spouses
 		Persons Whose Birth Dates Could Not Be Estimated
 		Persons with Invalid Dates
+		Families Having Swapped Spouses
 	*/
 
-	// Marriage checks:
-	EM100 = "EM100: person marries before birth"
-	EM101 = "EM101: person marries after death"
-	EM102 = "EM102: person has more than _wedder_ spouses"
-	EM103 = "EM103: person marries someone more than _maydec_ years older"
-	EM104 = "EM104: person marries younger than _yngmar_"
-	EM105 = "EM105: person marries older than _oldmar_"
-	EM106 = "EM106: marriage out of order"
-	EM107 = "EM107: marriage before birth from previous marriage"
-	EM108 = "EM108: marriage after birth from subsequent marriage"
-	EM109 = "EM109: homosexual marriage"
-	EM110 = "EM110: person is a female husband"
-	EM111 = "EM111: person is a male wife"
-	EM112 = "EM112: person was a widow(er) longer than _lngwdw_ years"
-	EM113 = "EM113: person lived more than _oldunm_ years and never married"
-	EM114 = "EM114: person has multiple marriages, this one with no spouse and no children"
-	EM115 = "EM115: person has same surname as spouse"
-
-	// Parentage checks:
-	EP100 = "EP100: mother has more than _fecmom_ children"
-	EP101 = "EP101: mother is older than _oldmom_ at time of birth of child"
-	EP102 = "EP102: child is born before mother"
-	EP103 = "EP103: mother is younger than _yngmom_"
-	EP104 = "EP104: mother is dead at birth of child"
-	EP105 = "EP105: same as above, but for father"
-	EP106 = "EP106: child doesn't inherit father's surname"
-
-	// Children checks:
-	EC100 = "EC100: child is born out of order with respect to a previous child"
-	EC101 = "EC101: child is born in the same year as a previous child"
-	EC102 = "EC102: child is born more than _cspace_ years after previous child"
-	EC103 = "EC103: children's births span more than _cbspan_ years"
-	EC104 = "EC104: child is born before parents' marriage"
-	EC105 = "EC105: child has same given name as sibling"
-
-	// Family checks:
-	EF100 = "EF100: family has no members"
-	EF101 = "EF101: family has no parents"
-	EF102 = "EF102: husband missing pointer to family"
-	EF103 = "EF103: family missing pointer to husband"
-	EF104 = "EF104: wife missing pointer to family"
-	EF105 = "EF105: family missing pointer to wife"
-	EF106 = "EF106: child missing pointer to family"
-	EF107 = "EF107: family missing pointer to child"
-	EF108 = "EF108: family has multiple husbands"
-	EF109 = "EF109: family has multiple wives"
-	EF110 = "EF110: child is in family multiple times"
-)
-
-func rule_I100(person *gedcom.IndividualRecord) {
-	// person's age at death is older than _oldage_
-	var birt_date, deat_date time.Time
-	birt_date = eventDate(person, "BIRT")
-	deat_date = eventDate(person, "DEAT")
-	if deat_date.Sub(birt_date) < OLDAGE {
-		//fmt.Println(errors.New(EI100), person.Name)
-		fmt.Println(person.Name)
-	}
-}
-
-func rule_I101(person *gedcom.IndividualRecord) {
-	// person is baptized before birth
-	// TODO
-}
-
-func rule_I102(person *gedcom.IndividualRecord) {
-	// person dies before birth
-	var birt_date, deat_date time.Time
-	birt_date = eventDate(person, "BIRT")
-	deat_date = eventDate(person, "DEAT")
-	if deat_date.Sub(birt_date) < 0 {
-		fmt.Println()
-		//fmt.Println(errors.New(EI102))
-	}
-}
-
-func rule_I103(person *gedcom.IndividualRecord) {
-	// person is buried before birth
-	var deat_date, buri_date time.Time
-	deat_date = eventDate(person, "DEAT")
-	buri_date = eventDate(person, "BURI")
-	if deat_date.Sub(buri_date) < 0 {
-		fmt.Println()
-		//fmt.Println(errors.New(EI103))
-	}
-}
-
-func rule_I104(person *gedcom.IndividualRecord) {
-	// person dies before baptism
-	// TODO
-}
-
-func rule_I105(person *gedcom.IndividualRecord) {
-	// person is buried before baptism
-	// TODO
-}
-
-func rule_I106(person *gedcom.IndividualRecord) {
-	// person is buried before death
-	var buri_date, deat_date time.Time
-	deat_date = eventDate(person, "DEAT")
-	buri_date = eventDate(person, "BURI")
-	if deat_date.Sub(buri_date) > 0 {
-		fmt.Println()
-		//fmt.Println(errors.New(EI106))
-	}
-}
-
-func rule_I107(person *gedcom.IndividualRecord) {
-	// person is baptised after birth year
-	// TODO
-}
-
-func rule_I108(person *gedcom.IndividualRecord) {
-	// person is buried after death year
-	var deat_date, buri_date time.Time
-	deat_date = eventDate(person, "DEAT")
-	buri_date = eventDate(person, "BURI")
-	if deat_date.Sub(buri_date) >= 1 {
-		fmt.Println()
-		//fmt.Println(errors.New(EI108))
-	}
-}
-
-func rule_I109(person *gedcom.IndividualRecord) {
-	// person has unkown gender
-	if person.Sex == "" {
-		fmt.Println(person.Name)
-		//fmt.Println(errors.New(EI109), person.Name)
-	}
-}
-
-func rule_I110(person *gedcom.IndividualRecord) {
-	// person has ambiguous gender
-	// TODO
-}
-
-func rule_I111(person *gedcom.IndividualRecord) {
-	// person has multiple parentage
-	// TODO
-}
-
-func rule_I112(person *gedcom.IndividualRecord) {
-	// person has no family pointers
-	// TODO
-}
-
-func rule_F100(family *gedcom.FamilyRecord) {
-	// family has no members
-}
-
-func rule_F101(family *gedcom.FamilyRecord) {
-	// family has no parents
-}
-
-func rule_F102(family *gedcom.FamilyRecord) {
-	// husband missing pointer to family
-}
-
-func rule_F103(family *gedcom.FamilyRecord) {
-	// family missing pointer to husband
-}
-
-func rule_F104(family *gedcom.FamilyRecord) {
-	// wife missing pointer to family
-}
-
-func rule_F105(family *gedcom.FamilyRecord) {
-	// family missing pointer to wife
-}
-func rule_F106(family *gedcom.FamilyRecord) {
-	// child missing pointer to family"
-}
-
-func rule_F107(family *gedcom.FamilyRecord) {
-	// family missing pointer to child
-}
-func rule_F108(family *gedcom.FamilyRecord) {
-	// family has multiple husbands
-}
-
-func rule_F109(family *gedcom.FamilyRecord) {
-	// family has multiple wives
-}
-
-func rule_F110(family *gedcom.FamilyRecord) {
-	// child is in family multiple times
-}
-
-func rule_M100(family *gedcom.FamilyRecord) {
-	// person marries before birth
-}
-
-func rule_M101(family *gedcom.FamilyRecord) {
-	// person marries after death
-}
-func rule_M102(family *gedcom.FamilyRecord) {
-	// person has more than _wedder_ spouses
-}
-func rule_M103(family *gedcom.FamilyRecord) {
-	// person marries someone more than _maydec_ years older
-}
-func rule_M104(family *gedcom.FamilyRecord) {
-	// person marries younger than _yngmar_
-}
-func rule_M105(family *gedcom.FamilyRecord) {
-	// person marries older than _oldmar_
-}
-func rule_M106(family *gedcom.FamilyRecord) {
-	// marriage out of order
-}
-func rule_M107(family *gedcom.FamilyRecord) {
-	// marriage before birth from previous marriage
-}
-func rule_M108(family *gedcom.FamilyRecord) {
-	// marriage after birth from subsequent marriage
-}
-func rule_M109(family *gedcom.FamilyRecord) {
-	// homosexual marriage
-}
-func rule_M110(family *gedcom.FamilyRecord) {
-	// person is a female husband
-}
-func rule_M111(family *gedcom.FamilyRecord) {
-	// person is a male wife
-}
-func rule_M112(family *gedcom.FamilyRecord) {
-	// person was a widow(er) longer than _lngwdw_ years
-}
-func rule_M113(family *gedcom.FamilyRecord) {
-	// person lived more than _oldunm_ years and never married
-}
-func rule_M114(family *gedcom.FamilyRecord) {
-	// person has multiple marriages, this one with no spouse and no children
-}
-func rule_M115(family *gedcom.FamilyRecord) {
-	// person has same surname as spouse
-}
-
-func rule_P100(family *gedcom.FamilyRecord) {
-	// mother has more than _fecmom_ children
-}
-
-func rule_P101(family *gedcom.FamilyRecord) {
-	// mother is older than _oldmom_ at time of birth of child
-}
-func rule_P102(family *gedcom.FamilyRecord) {
-	// child is born before mother
-}
-func rule_P103(family *gedcom.FamilyRecord) {
-	// mother is younger than _yngmom_
-}
-func rule_P104(family *gedcom.FamilyRecord) {
-	// mother is dead at birth of child
-}
-func rule_P105(family *gedcom.FamilyRecord) {
-	// same as above, but for father
-}
-func rule_P106(family *gedcom.FamilyRecord) {
-	// child doesn't inherit father's surname
-}
-
-func rule_C100(family *gedcom.FamilyRecord) {
-	// child is born out of order with respect to a previous child
-}
-
-func rule_C101(family *gedcom.FamilyRecord) {
-	// child is born in the same year as a previous child
-}
-
-func rule_C102(family *gedcom.FamilyRecord) {
-	// child is born more than _cspace_ years after previous child
-}
-
-func rule_C103(family *gedcom.FamilyRecord) {
-	// children's births span more than _cbspan_ years
-}
-
-func rule_C104(family *gedcom.FamilyRecord) {
-	// child is born before parents' marriage
-}
-
-func rule_C105(family *gedcom.FamilyRecord) {
-	// child has same given name as sibling
-}
-
-func eventDate(person *gedcom.IndividualRecord, eventTag string) time.Time {
-	var date time.Time
-	for _, event := range person.Event {
-		if event.Tag == eventTag {
-			date, _ = parse(event.Date)
-		}
-	}
-
-	return date
-}
-
-func parse(date string) (time.Time, error) {
-	// "2006-01-02T15:04:05.000Z"
-	// http://www.gedcomx.org/GEDCOM-5.5.1.pdf
-	layout := "02 JAN 2006"
-	t, err := time.Parse(layout, date)
-	if err == nil {
-		return t, nil
-	}
-
-	return time.Time{}, err
-}
-
-func main() {
-
-	rules := map[string]fn{
+	// rules are borrowed from gigatrees.com and lifelines
+	person_rules := map[string]fn_person{
 		"EI100: person's age at death is older than _oldage_": rule_I100,
 		"EI101: person is baptized before birth":              rule_I101,
 		"EI102: person dies before birth":                     rule_I102,
@@ -392,15 +586,61 @@ func main() {
 		"EI112: person has no family pointers":                rule_I112,
 	}
 
+	family_rules := map[string]fn_family{
+		"EF100: family has no members":             rule_F100,
+		"EF101: family has no parents":             rule_F101,
+		"EF102: husband missing pointer to family": rule_F102,
+		"EF103: family missing pointer to husband": rule_F103,
+		"EF104: wife missing pointer to family":    rule_F104,
+		"EF105: family missing pointer to wife":    rule_F105,
+		"EF106: child missing pointer to family":   rule_F106,
+		"EF107: family missing pointer to child":   rule_F107,
+		"EF108: family has multiple husbands":      rule_F108,
+		"EF109: family has multiple wives":         rule_F109,
+		"EF110: child is in family multiple times": rule_F110,
+		// marriage rules
+		"EM100: person marries before birth":                                            rule_M100,
+		"EM101: person marries after death":                                             rule_M101,
+		"EM102: person has more than WEDDER spouses":                                    rule_M102,
+		"EM103: person marries someone more than MAYDEC years older":                    rule_M103,
+		"EM104: person marries younger than YNGMAR":                                     rule_M104,
+		"EM105: person marries older than OLDMAR":                                       rule_M105,
+		"EM106: marriage out of order":                                                  rule_M106,
+		"EM107: marriage before birth from previous marriage":                           rule_M107,
+		"EM108: marriage after birth from subsequent marriage":                          rule_M108,
+		"EM109: homosexual marriage":                                                    rule_M109,
+		"EM110: person is a female husband":                                             rule_M110,
+		"EM111: person is a male wife":                                                  rule_M111,
+		"EM112: person was a widow(er) longer than LNGWDW years":                        rule_M112,
+		"EM113: person lived more than OLDUNM years and never married":                  rule_M113,
+		"EM114: person has multiple marriages, this one with no spouse and no children": rule_M114,
+		"EM115: person has same surname as spouse":                                      rule_M115,
+		// parentage rules
+		"EP100: mother has more than FECMOM children":                    rule_P100,
+		"EP101: mother is older than OLDMOM at time of birth of child":   rule_P101,
+		"EP102: child is born before mother":                             rule_P102,
+		"EP103: mother is younger than YNGMOM at time of birth of child": rule_P103,
+		"EP104: mother is dead at birth of child":                        rule_P104,
+		"EP105: father is dead at birth of child":                        rule_P105,
+		"EP106: child doesn't inherit father's surname":                  rule_P106,
+		// children rules
+		"EC100: child is born out of order with respect to a previous child": rule_C100,
+		"EC101: child is born in the same year as a previous child":          rule_C101,
+		"EC102: child is born more than CSPACE years after previous child":   rule_C102,
+		"EC103: children's births span more than CBSPAN years":               rule_C103,
+		"EC104: child is born before parent's marriage":                      rule_C104,
+		"EC105: child has same given name as sibling":                        rule_C105,
+	}
+
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "\nlint is a tool for checking of GEDCOM to errors.")
+		fmt.Fprintf(os.Stderr, "\nTool for checking of GEDCOM file for errors.")
 		fmt.Fprintf(os.Stderr, "\n\nFlags:\n")
 		flag.PrintDefaults()
 	}
 
 	var gedfile = flag.String("file", "", "GEDCOM filename")
-	var ignorelist = flag.String("ignore", "", "errors ignore list")
+	var ignorelist = flag.String("ignore", "", "rules ignore list")
 	var verbose = flag.Bool("verbose", false, "verbose mode")
 
 	flag.Parse()
@@ -411,60 +651,47 @@ func main() {
 	}
 
 	var ignores []string
-	ignores = strings.Split(*ignorelist, ",")
-	fmt.Println("Errors to ignore:", ignores)
+	if len(*ignorelist) != 0 {
+		ignores = strings.Split(*ignorelist, ",")
+		fmt.Println("These rules are ignored:", ignores)
+	}
 
 	data, _ := ioutil.ReadFile(*gedfile)
 	d := gedcom.NewDecoder(bytes.NewReader(data))
 	g, _ := d.Decode()
 
 	if *verbose {
-		fmt.Println("\nPersons (Xref, Name, Sex):")
-		fmt.Println("--------------------------")
-		fmt.Println("Found persons:", len(g.Individual))
+		fmt.Printf("Found %d persons:\n\n", len(g.Individual))
 	}
 
-	for _, rec := range g.Individual {
-		if len(rec.Name) > 0 {
-			if *verbose {
-				fmt.Printf("%s, %s, %s\n", rec.Xref, rec.Name[0].Name, rec.Sex)
+	for _, record := range g.Individual {
+		for err_msg, fn := range person_rules {
+			if contains(ignores, err_msg) {
+				continue
 			}
-		}
-
-		for err_msg, fn := range rules {
-			fmt.Printf("key[%s] value[%s]\n", err_msg, fn)
-			fn(rec)
+			if !fn(record) {
+				fmt.Printf("%s", record.Xref)
+				if len(record.Name) > 0 {
+					fmt.Printf(" %s\n", record.Name[0].Name)
+				} else {
+					fmt.Printf("\n")
+				}
+				fmt.Println(errors.New(err_msg))
+			}
 		}
 	}
 
 	if *verbose {
-		fmt.Println("\nFamily (Xref, Husband, Wife):")
-		fmt.Println("-------------------------------")
-		fmt.Println("Found families:", len(g.Family))
+		fmt.Printf("\nFound %d families:\n\n", len(g.Family))
 	}
-	for _, rec := range g.Family {
-		if *verbose {
-			fmt.Printf("%s\n", rec.Xref)
-			fmt.Printf("%s, %s, %s\n", rec.Xref, rec.Husband.Xref, rec.Wife.Xref)
-		}
-
-		/*
-			rule_F100(rec)
-			rule_F101(rec)
-			rule_F102(rec)
-			rule_F103(rec)
-			rule_F104(rec)
-			rule_F105(rec)
-			rule_F106(rec)
-			rule_F107(rec)
-			rule_F108(rec)
-			rule_F109(rec)
-			rule_F110(rec)
-		*/
-
-		for _, child := range rec.Child {
-			if *verbose {
-				fmt.Printf("\t%s, %s\n", rec.Xref, child.Xref)
+	for _, record := range g.Family {
+		for err_msg, fn := range family_rules {
+			if contains(ignores, err_msg) {
+				continue
+			}
+			if !fn(record) {
+				PrintFamilyRecord(record)
+				fmt.Println(err_msg)
 			}
 		}
 	}
