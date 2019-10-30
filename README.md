@@ -8,9 +8,7 @@ of Jesus Christ of Latter-Day Saints (http://www.lds.org).
 
 ## `gedcom2sql.go`
 
-- https://gramps-project.org/wiki/index.php/Gramps_SQL_Database
-
-This module allows to convert of data in GEDCOM format to SQL.
+This module allows to converting data in GEDCOM format to SQLite DB.
 
 ```sql
 $ gedcom2sql -file sergeyb.gedcom
@@ -36,6 +34,8 @@ sqlite> -- "Total number of birth dates:"
 sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 ```
 
+- [Gramps_SQL_Database](https://gramps-project.org/wiki/index.php/Gramps_SQL_Database)
+
 ## `gedcom-analysis.go`
 
 Проверка файла GEDCOM на ошибки.
@@ -44,31 +44,42 @@ sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 gedcom-analysis -verbose -file samples/tsars.ged
 ```
 
-### `vk2gedcom.go`
+## `vk2gedcom.go`
 
 Приложение строит генеалогическое дерево на основании данных из социальных
 сетей. Пока реализована поддержка только для ВКонтакте.
 
-### `vis.go`
+## `vis.go`
 
-Визуализация GEDCOM
+Визуализация GEDCOM.
 
-* [Tracing Genealogical Data with TimeNets](http://vis.stanford.edu/papers/timenets)
-* [Family Tree Visualization](http://vis.berkeley.edu/courses/cs294-10-sp10/wiki/images/f/f2/Family_Tree_Visualization_-_Final_Paper.pdf)
-* Gramps: [GEPS 030: New Visualization Techniques](https://www.gramps-project.org/wiki/index.php/GEPS_030:_New_Visualization_Techniques)
-* [Geneaquilts](https://aviz.fr/geneaquilts/)
-* [familytreemaker](https://github.com/adrienverge/familytreemaker)
-* https://www.ctan.org/pkg/genealogytree
-* https://github.com/bencrowder/emperor
-* https://github.com/vmiklos/ged2dot
-- https://github.com/nicolaskruchten/genealogy
+* [Javascript script to embed pedigree charts in web pages](https://github.com/bencrowder/emperor)
+* [Pedigree and genealogical tree diagrams with LATeX](https://www.ctan.org/pkg/genealogytree)
 
-### `pedigree.ipynb`
+## `report.go`
+
+Отчёты для GEDCOM.
+
+* [gedcom2html](https://godoc.org/github.com/elliotchance/gedcom/gedcom2html) ([example](https://gedcom.app/royals/places.html))
+* [gedcom2json](https://godoc.org/github.com/elliotchance/gedcom/gedcom2json)
+* [gedcom2text](https://godoc.org/github.com/elliotchance/gedcom/gedcom2text)
+* [gedcomdiff](https://godoc.org/github.com/elliotchance/gedcom/gedcomdiff)
+
+## `pedigree.ipynb`
 
 - https://jupyter.brynmawr.edu/services/public/dblank/jupyter.cs/Genealogy/Gramps%205.0,%20Getting%20Started.ipynb
 - https://github.com/brad-do/query-gen-dbs
 - https://bencrowder.net/blog/2013/genealogy-notebook-proof-of-concept/
 - http://nicolas.kruchten.com/content/2015/08/family-trees/
 - https://dadoverflow.com/2018/07/05/roots-magic-and-jupyter-notebook-like-peas-and-carrots/
+- [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
+
+## `book.py`
+
+- https://imgur.com/a/VMHPdEr
+- https://doasimdoingblog.com/category/family-history-binder/
+- https://bencrowder.net/blog/2014/experimental-family-pedigree/
+- https://bencrowder.net/blog/2014/experimental-pedigree-chart/
+- https://bencrowder.net/blog/2011/family-group-record-redesigns/
 
 Copyright (c) 2017-2019, [Sergey Bronnikov](https://bronevichok.ru/)
