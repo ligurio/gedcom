@@ -54,7 +54,7 @@ gedcom-analysis -verbose -file samples/tsars.ged
 Визуализация GEDCOM.
 
 * [Javascript script to embed pedigree charts in web pages](https://github.com/bencrowder/emperor)
-* [Pedigree and genealogical tree diagrams with LATeX](https://www.ctan.org/pkg/genealogytree)
+* [Pedigree and genealogical tree diagrams with LaTeX](https://www.ctan.org/pkg/genealogytree)
 
 ## `report.go`
 
@@ -74,12 +74,5 @@ gedcom-analysis -verbose -file samples/tsars.ged
 - https://dadoverflow.com/2018/07/05/roots-magic-and-jupyter-notebook-like-peas-and-carrots/
 - [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
 
-## `book.py`
-
-- https://imgur.com/a/VMHPdEr
-- https://doasimdoingblog.com/category/family-history-binder/
-- https://bencrowder.net/blog/2014/experimental-family-pedigree/
-- https://bencrowder.net/blog/2014/experimental-pedigree-chart/
-- https://bencrowder.net/blog/2011/family-group-record-redesigns/
 
 Copyright (c) 2017-2019, [Sergey Bronnikov](https://bronevichok.ru/)
