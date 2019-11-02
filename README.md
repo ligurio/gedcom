@@ -80,23 +80,16 @@ EP106: child doesn't inherit father's surname
 * [Javascript script to embed pedigree charts in web pages](https://github.com/bencrowder/emperor)
 * [Pedigree and genealogical tree diagrams with LaTeX](https://www.ctan.org/pkg/genealogytree)
 
-## `gedcom2report.go`
-
-Отчёты для GEDCOM.
-
-* [gedcom2html](https://godoc.org/github.com/elliotchance/gedcom/gedcom2html) ([example](https://gedcom.app/royals/places.html))
-* [gedcom2json](https://godoc.org/github.com/elliotchance/gedcom/gedcom2json)
-* [gedcom2text](https://godoc.org/github.com/elliotchance/gedcom/gedcom2text)
-* [gedcomdiff](https://godoc.org/github.com/elliotchance/gedcom/gedcomdiff)
-
 ## `pedigree.ipynb`
 
-- https://jupyter.brynmawr.edu/services/public/dblank/jupyter.cs/Genealogy/Gramps%205.0,%20Getting%20Started.ipynb
-- https://github.com/brad-do/query-gen-dbs
-- https://bencrowder.net/blog/2013/genealogy-notebook-proof-of-concept/
-- http://nicolas.kruchten.com/content/2015/08/family-trees/
-- https://dadoverflow.com/2018/07/05/roots-magic-and-jupyter-notebook-like-peas-and-carrots/
-- [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
+Исследование родословной с помощью Jupiter Notebook.
 
+## Полезные инструменты
+
+- [gedcom2html](https://godoc.org/github.com/elliotchance/gedcom/gedcom2html) ([example](https://gedcom.app/royals/places.html))
+- [gedcom2json](https://godoc.org/github.com/elliotchance/gedcom/gedcom2json)
+- [gedcom2text](https://godoc.org/github.com/elliotchance/gedcom/gedcom2text)
+- [gedcomdiff](https://godoc.org/github.com/elliotchance/gedcom/gedcomdiff)
+- [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
 
 Copyright (c) 2017-2019, [Sergey Bronnikov](https://bronevichok.ru/)
