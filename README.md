@@ -39,30 +39,28 @@ sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 Проверка файла GEDCOM на ошибки.
 
 ```
-gedcom2errors -verbose -file samples/bronte.ged
-I0003 Maria /Brontë/
+$ gedcom2errors -file samples/bronte.ged
+
+Person (I0003) Maria /Brontë/
 EI112: person has no family pointers
-I0004 Elizabeth /Brontë/
+Person (I0004) Elizabeth /Brontë/
 EI112: person has no family pointers
-I0006 Patrick Branwell /Brontë/
+Person (I0006) Patrick Branwell /Brontë/
 EI112: person has no family pointers
-I0007 Emily Jane /Brontë/
+Person (I0007) Emily Jane /Brontë/
 EI112: person has no family pointers
-I0008 Anne /Brontë/
+Person (I0008) Anne /Brontë/
 EI112: person has no family pointers
-1820-01-17 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC
-I0008 Anne /Brontë/
-EI102: person dies before birth
-I0014 Elizabeth /Branwell/
+Person (I0014) Elizabeth /Branwell/
 EI112: person has no family pointers
-Family F001
+Family (F001)
 EP102: child is born before mother
-Family F002
-EF100: family has no members
-Family F002
+Family (F002)
 EF107: family missing pointer to child
+Family (F002)
+EF100: family has no members
 [Brunty] Brontë
-Family F003
+Family (F003)
 EP106: child doesn't inherit father's surname
 ```
 
@@ -75,9 +73,6 @@ EP106: child doesn't inherit father's surname
 
 Визуализация GEDCOM.
 
-* [Javascript script to embed pedigree charts in web pages](https://github.com/bencrowder/emperor)
-* [Pedigree and genealogical tree diagrams with LaTeX](https://www.ctan.org/pkg/genealogytree)
-
 ## `pedigree.ipynb`
 
 Исследование родословной с помощью Jupiter Notebook.
@@ -89,5 +84,7 @@ EP106: child doesn't inherit father's surname
 - [gedcom2text](https://godoc.org/github.com/elliotchance/gedcom/gedcom2text)
 - [gedcomdiff](https://godoc.org/github.com/elliotchance/gedcom/gedcomdiff)
 - [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
+- [emperor](https://github.com/bencrowder/emperor)
+- [genealogytree](https://www.ctan.org/pkg/genealogytree)
 
 Copyright (c) 2017-2019, [Sergey Bronnikov](https://bronevichok.ru/)
