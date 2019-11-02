@@ -36,12 +36,12 @@ sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 
 - [Gramps_SQL_Database](https://gramps-project.org/wiki/index.php/Gramps_SQL_Database)
 
-## `gedcom-analysis.go`
+## `gedcom2errors.go`
 
 Проверка файла GEDCOM на ошибки.
 
 ```
-gedcom-analysis -verbose -file samples/tsars.ged
+gedcom2errors -verbose -file samples/tsars.ged
 ```
 
 ## `vk2gedcom.go`
@@ -49,14 +49,14 @@ gedcom-analysis -verbose -file samples/tsars.ged
 Приложение строит генеалогическое дерево на основании данных из социальных
 сетей. Пока реализована поддержка только для ВКонтакте.
 
-## `vis.go`
+## `gedcom2timenet.go`
 
 Визуализация GEDCOM.
 
 * [Javascript script to embed pedigree charts in web pages](https://github.com/bencrowder/emperor)
 * [Pedigree and genealogical tree diagrams with LaTeX](https://www.ctan.org/pkg/genealogytree)
 
-## `report.go`
+## `gedcom2report.go`
 
 Отчёты для GEDCOM.
 
