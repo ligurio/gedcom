@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"github.com/iand/gedcom"
@@ -38,6 +37,9 @@ func rule_I100(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	deat_date = eventDate(person, "DEAT")
+	if deat_date.IsZero() {
+		return true
+	}
 	if deat_date.Sub(birt_date) > OLDAGE {
 		fmt.Println(deat_date, birt_date)
 		return false
@@ -53,6 +55,9 @@ func rule_I101(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	bap_date = eventDate(person, "BAP")
+	if bap_date.IsZero() {
+		return true
+	}
 	if bap_date.Sub(birt_date) > 0 {
 		fmt.Println(birt_date, bap_date)
 		return false
@@ -68,6 +73,9 @@ func rule_I102(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	deat_date = eventDate(person, "DEAT")
+	if deat_date.IsZero() {
+		return true
+	}
 	if deat_date.Sub(birt_date) < 0 {
 		fmt.Println(birt_date, deat_date)
 		return false
@@ -83,6 +91,9 @@ func rule_I103(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	buri_date = eventDate(person, "BURI")
+	if buri_date.IsZero() {
+		return true
+	}
 	if deat_date.Sub(buri_date) < 0 {
 		fmt.Println(deat_date, buri_date)
 		return false
@@ -98,6 +109,9 @@ func rule_I104(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	bap_date = eventDate(person, "BAP")
+	if bap_date.IsZero() {
+		return true
+	}
 	if deat_date.Sub(bap_date) < 0 {
 		fmt.Println(deat_date, bap_date)
 		return false
@@ -113,6 +127,9 @@ func rule_I105(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	buri_date = eventDate(person, "BURI")
+	if buri_date.IsZero() {
+		return true
+	}
 	if bap_date.Sub(buri_date) < 0 {
 		fmt.Println(buri_date, bap_date)
 		return false
@@ -128,6 +145,9 @@ func rule_I106(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	buri_date = eventDate(person, "BURI")
+	if buri_date.IsZero() {
+		return true
+	}
 	if deat_date.Sub(buri_date) > 0 {
 		fmt.Println(buri_date, deat_date)
 		return false
@@ -143,6 +163,9 @@ func rule_I107(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	birt_date = eventDate(person, "BIRT")
+	if birt_date.IsZero() {
+		return true
+	}
 	if bap_date.Sub(birt_date) >= 1 {
 		fmt.Println(bap_date, birt_date)
 		return false
@@ -158,6 +181,9 @@ func rule_I108(person *gedcom.IndividualRecord) bool {
 		return true
 	}
 	buri_date = eventDate(person, "BURI")
+	if buri_date.IsZero() {
+		return true
+	}
 	if deat_date.Sub(buri_date) >= 1 {
 		fmt.Println(deat_date, buri_date)
 		return false
@@ -394,6 +420,9 @@ func rule_P103(family *gedcom.FamilyRecord) bool {
 	}
 	for _, child := range family.Child {
 		child_birt_date = eventDate(child, "BIRT")
+		if child_birt_date.IsZero() {
+			continue
+		}
 		if mother_birt_date.Sub(child_birt_date) < YNGMOM {
 			fmt.Println(mother_birt_date, child_birt_date)
 			return false
@@ -411,6 +440,9 @@ func rule_P104(family *gedcom.FamilyRecord) bool {
 	}
 	for _, child := range family.Child {
 		child_birt_date = eventDate(child, "BIRT")
+		if child_birt_date.IsZero() {
+			continue
+		}
 		if mother_deat_date == child_birt_date {
 			fmt.Println(mother_deat_date, child_birt_date)
 			return false
@@ -428,6 +460,9 @@ func rule_P105(family *gedcom.FamilyRecord) bool {
 	}
 	for _, child := range family.Child {
 		child_birt_date = eventDate(child, "BIRT")
+		if child_birt_date.IsZero() {
+			continue
+		}
 		if father_deat_date == child_birt_date {
 			fmt.Println(father_deat_date, child_birt_date)
 			return false
@@ -528,7 +563,7 @@ func contains(s []string, e string) bool {
 }
 
 func PrintIndividualRecord(record *gedcom.IndividualRecord) {
-	fmt.Printf("Person: %s", record.Xref)
+	fmt.Printf("Person (%s)", record.Xref)
 	if len(record.Name) > 0 {
 		fmt.Printf(" %s\n", record.Name[0].Name)
 	} else {
@@ -537,7 +572,7 @@ func PrintIndividualRecord(record *gedcom.IndividualRecord) {
 }
 
 func PrintFamilyRecord(record *gedcom.FamilyRecord) {
-	fmt.Printf("Family %s\n", record.Xref)
+	fmt.Printf("Family (%s)\n", record.Xref)
 }
 
 func main() {
@@ -671,13 +706,8 @@ func main() {
 				continue
 			}
 			if !fn(record) {
-				fmt.Printf("%s", record.Xref)
-				if len(record.Name) > 0 {
-					fmt.Printf(" %s\n", record.Name[0].Name)
-				} else {
-					fmt.Printf("\n")
-				}
-				fmt.Println(errors.New(err_msg))
+				PrintIndividualRecord(record)
+				fmt.Println(err_msg)
 				found_errors = true
 			}
 		}
