@@ -86,5 +86,6 @@ EP106: child doesn't inherit father's surname
 - [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
 - [emperor](https://github.com/bencrowder/emperor)
 - [genealogytree](https://www.ctan.org/pkg/genealogytree)
+- [Using Prolog to Analyze your Family Tree](https://gramps-project.org/blog/2015/05/using-prolog-to-analyze-your-family-tree/)
 
 Copyright (c) 2017-2019, [Sergey Bronnikov](https://bronevichok.ru/)
