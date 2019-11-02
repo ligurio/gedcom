@@ -664,6 +664,7 @@ func main() {
 		fmt.Printf("Found %d persons:\n\n", len(g.Individual))
 	}
 
+	found_errors := false
 	for _, record := range g.Individual {
 		for err_msg, fn := range person_rules {
 			if contains(ignores, err_msg) {
@@ -677,6 +678,7 @@ func main() {
 					fmt.Printf("\n")
 				}
 				fmt.Println(errors.New(err_msg))
+				found_errors = true
 			}
 		}
 	}
@@ -692,7 +694,12 @@ func main() {
 			if !fn(record) {
 				PrintFamilyRecord(record)
 				fmt.Println(err_msg)
+				found_errors = true
 			}
 		}
+	}
+
+	if found_errors {
+		os.Exit(1)
 	}
 }

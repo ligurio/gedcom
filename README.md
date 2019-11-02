@@ -41,7 +41,31 @@ sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 Проверка файла GEDCOM на ошибки.
 
 ```
-gedcom2errors -verbose -file samples/tsars.ged
+gedcom2errors -verbose -file samples/bronte.ged
+I0003 Maria /Brontë/
+EI112: person has no family pointers
+I0004 Elizabeth /Brontë/
+EI112: person has no family pointers
+I0006 Patrick Branwell /Brontë/
+EI112: person has no family pointers
+I0007 Emily Jane /Brontë/
+EI112: person has no family pointers
+I0008 Anne /Brontë/
+EI112: person has no family pointers
+1820-01-17 00:00:00 +0000 UTC 0001-01-01 00:00:00 +0000 UTC
+I0008 Anne /Brontë/
+EI102: person dies before birth
+I0014 Elizabeth /Branwell/
+EI112: person has no family pointers
+Family F001
+EP102: child is born before mother
+Family F002
+EF100: family has no members
+Family F002
+EF107: family missing pointer to child
+[Brunty] Brontë
+Family F003
+EP106: child doesn't inherit father's surname
 ```
 
 ## `vk2gedcom.go`
