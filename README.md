@@ -34,8 +34,6 @@ sqlite> -- "Total number of birth dates:"
 sqlite> SELECT COUNT(*) FROM person_st WHERE birt_date IS NOT "";
 ```
 
-- [Gramps_SQL_Database](https://gramps-project.org/wiki/index.php/Gramps_SQL_Database)
-
 ## `gedcom2errors.go`
 
 Проверка файла GEDCOM на ошибки.

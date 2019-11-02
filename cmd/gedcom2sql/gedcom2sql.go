@@ -1,3 +1,6 @@
+// Gramps SQL Database Scheme
+// https://gramps-project.org/wiki/index.php/Gramps_SQL_Database)
+
 package main
 
 import (
