@@ -79,13 +79,9 @@ EP106: child doesn't inherit father's surname
 
 ## Полезные инструменты
 
-- [gedcom2html](https://godoc.org/github.com/elliotchance/gedcom/gedcom2html) ([example](https://gedcom.app/royals/places.html))
-- [gedcom2json](https://godoc.org/github.com/elliotchance/gedcom/gedcom2json)
-- [gedcom2text](https://godoc.org/github.com/elliotchance/gedcom/gedcom2text)
-- [gedcomdiff](https://godoc.org/github.com/elliotchance/gedcom/gedcomdiff)
-- [gedcomq](https://godoc.org/github.com/elliotchance/gedcom/gedcomq)
+- [gedcom](https://github.com/elliotchance/gedcom/) ([example](https://gedcom.app/royals/places.html))
 - [emperor](https://github.com/bencrowder/emperor)
 - [genealogytree](https://www.ctan.org/pkg/genealogytree)
 - [Using Prolog to Analyze your Family Tree](https://gramps-project.org/blog/2015/05/using-prolog-to-analyze-your-family-tree/)
 
-Copyright (c) 2017-2019, [Sergey Bronnikov](https://bronevichok.ru/)
+Copyright (c) 2017-2021, [Sergey Bronnikov](https://bronevichok.ru/)
