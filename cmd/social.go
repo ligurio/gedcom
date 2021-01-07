@@ -156,26 +156,11 @@ func get_profile(id string) Person {
 	return person
 }
 
-func main() {
-
-	flag.Usage = func() {
-		fmt.Println("\nsocialtree is a tool for getting relations via VK.")
-		fmt.Println("\nUsage:")
-		flag.PrintDefaults()
-	}
-
-	var person_id = flag.String("id", "", "person id")
-
-	flag.Parse()
-
-	if *person_id == "" {
-		flag.Usage()
-		os.Exit(1)
-	}
+func getSocialTree(personId *string) {
 
 	var Tree []Person
 
-	person := get_profile(*person_id)
+	person := get_profile(*personId)
 	person.Generation = 0
 	Tree = append(Tree, person)
 	Tree = append(Tree, process_person(person)...) // new
@@ -229,5 +214,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	log.Println(string(prettyJSON))
 }

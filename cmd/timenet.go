@@ -20,7 +20,7 @@ import (
 	"os"
 )
 
-func main() {
+func drawTimenet() {
 	width := 500
 	height := 500
 	canvas := svg.New(os.Stdout)

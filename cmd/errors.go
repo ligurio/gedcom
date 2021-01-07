@@ -575,7 +575,7 @@ func PrintFamilyRecord(record *gedcom.FamilyRecord) {
 	fmt.Printf("Family (%s)\n", record.Xref)
 }
 
-func main() {
+var (
 	/*
 		persons born after they were married
 		persons born after their children
@@ -605,7 +605,7 @@ func main() {
 	*/
 
 	// rules are borrowed from gigatrees.com and lifelines
-	person_rules := map[string]fn_person{
+	person_rules = map[string]fn_person{
 		"EI100: person's age at death is older than _oldage_": rule_I100,
 		"EI101: person is baptized before birth":              rule_I101,
 		"EI102: person dies before birth":                     rule_I102,
@@ -621,7 +621,7 @@ func main() {
 		"EI112: person has no family pointers":                rule_I112,
 	}
 
-	family_rules := map[string]fn_family{
+	family_rules = map[string]fn_family{
 		"EF100: family has no members":             rule_F100,
 		"EF101: family has no parents":             rule_F101,
 		"EF102: husband missing pointer to family": rule_F102,
@@ -666,24 +666,9 @@ func main() {
 		"EC104: child is born before parent's marriage":                      rule_C104,
 		"EC105: child has same given name as sibling":                        rule_C105,
 	}
+)
 
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "\nTool for checking of GEDCOM file for errors.")
-		fmt.Fprintf(os.Stderr, "\n\nFlags:\n")
-		flag.PrintDefaults()
-	}
-
-	var gedfile = flag.String("file", "", "GEDCOM filename")
-	var ignorelist = flag.String("ignore", "", "rules ignore list")
-	var verbose = flag.Bool("verbose", false, "verbose mode")
-
-	flag.Parse()
-
-	if *gedfile == "" {
-		flag.Usage()
-		os.Exit(1)
-	}
+func printErrors(fn *string, ignoresList *string, verbose bool) {
 
 	var ignores []string
 	if len(*ignorelist) != 0 {
